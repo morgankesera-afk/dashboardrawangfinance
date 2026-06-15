@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Keuangan Perkumpulan Rawang 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1d1d1f;padding:16px;}
+.wrap{max-width:1150px;margin:0 auto;}
+.hdr{background:linear-gradient(135deg,#4A148C 0%,#6A1B9A 60%,#8E24AA 100%);padding:16px 20px;display:flex;align-items:center;gap:14px;border-radius:12px;margin-bottom:16px;}
+.hdr img{width:54px;height:54px;flex-shrink:0;}
+.hdr-txt h1{color:white;font-size:18px;font-weight:500;}
+.hdr-txt p{color:rgba(255,255,255,0.65);font-size:12px;margin-top:2px;}
+.bdg{background:rgba(255,255,255,0.15);color:white;font-size:11px;padding:3px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.25);margin-left:auto;white-space:nowrap;}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid #e5e5e7;}
+.tab{padding:9px 16px;font-size:13px;cursor:pointer;color:#6e6e73;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;font-family:inherit;}
+.tab.active{color:#6A1B9A;border-bottom-color:#6A1B9A;font-weight:500;}
+.tab:hover{color:#6A1B9A;}
+.pg{display:none;}.pg.active{display:block;}
+.g6{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:16px;}
+.kpi{background:white;border-radius:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,0.07);}
+.kpi .lb{font-size:11px;color:#6e6e73;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+.kpi .vl{font-size:20px;font-weight:500;color:#1d1d1f;}
+.kpi .sb{font-size:11px;color:#6e6e73;margin-top:3px;}
+.ka{background:#6A1B9A!important;}.ka .lb{color:rgba(255,255,255,0.65);}.ka .vl{color:white;}.ka .sb{color:rgba(255,255,255,0.55);}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.cd{background:white;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.07);margin-bottom:14px;}
+.ct{font-size:13px;font-weight:500;margin-bottom:12px;color:#1d1d1f;}
+.tb{width:100%;border-collapse:collapse;font-size:12px;}
+.tb th{text-align:left;font-weight:500;color:#6e6e73;font-size:11px;padding:7px 8px;border-bottom:1px solid #e5e5e7;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;}
+.tb td{padding:7px 8px;border-bottom:1px solid #f2f2f2;color:#1d1d1f;vertical-align:middle;}
+.tb tr:hover td{background:#f9f9fb;}
+.bpci{background:#e8f5e9;color:#1b5e20;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;}
+.bpco{background:#fce4ec;color:#880e4f;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;}
+.ain{color:#2e7d32;font-weight:500;}.aout{color:#c62828;font-weight:500;}
+.fb{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.fb select,.sbx{font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid #d2d2d7;background:white;color:#1d1d1f;font-family:inherit;}
+.sbx{flex:1;min-width:160px;max-width:240px;}
+.pg-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:#6e6e73;}
+.pg-row button{font-size:12px;padding:5px 12px;border:1px solid #d2d2d7;border-radius:6px;background:white;cursor:pointer;font-family:inherit;}
+.pg-row button:hover{background:#f5f5f7;}
+.btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:7px 14px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-weight:500;transition:opacity 0.15s;white-space:nowrap;}
+.btn:hover{opacity:0.85;}
+.btn-purple{background:#6A1B9A;color:white;}
+.btn-green{background:#2e7d32;color:white;}
+.btn-red{background:#c62828;color:white;font-size:11px;padding:5px 9px;}
+.btn-edit{background:#1565C0;color:white;font-size:11px;padding:5px 9px;}
+.btn-gray{background:#e5e5e7;color:#1d1d1f;}
+.act-btns{display:flex;gap:4px;justify-content:center;}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:white;border-radius:14px;padding:24px;width:540px;max-width:96vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:16px;font-weight:500;margin-bottom:18px;color:#1d1d1f;}
+.form-row{margin-bottom:13px;}
+.form-row label{display:block;font-size:11px;font-weight:600;color:#6e6e73;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px;}
+.form-row input,.form-row select{width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #d2d2d7;font-size:13px;font-family:inherit;color:#1d1d1f;background:white;outline:none;}
+.form-row input:focus,.form-row select:focus{border-color:#6A1B9A;}
+.form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:16px;border-top:1px solid #f2f2f2;}
+/* Saving */
+.si{padding:10px 12px;background:#f9f9fb;border-radius:8px;margin-bottom:7px;}
+.sir{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.sn{font-size:12px;font-weight:500;}.sa{font-size:12px;font-weight:500;color:#6A1B9A;}.sd{font-size:11px;color:#6e6e73;}
+.tr2{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-top:2px solid #6A1B9A;margin-top:8px;}
+.tr2 span:last-child{font-size:17px;font-weight:500;color:#6A1B9A;}
+.bi2{padding:7px 0;border-bottom:1px solid #f2f2f2;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+.bi2:last-child{border-bottom:none;}.ba{font-size:12px;color:#c62828;font-weight:500;flex-shrink:0;}
+/* Analitik */
+.pr{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.pl{font-size:12px;color:#6e6e73;width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pw{flex:1;height:8px;background:#f2f2f2;border-radius:4px;overflow:hidden;}
+.pb{height:100%;border-radius:4px;}
+.pv{font-size:12px;color:#6e6e73;width:75px;text-align:right;flex-shrink:0;}
+.ir{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid #f2f2f2;}
+.ir:last-child{border-bottom:none;}
+.ig{color:#2e7d32;font-weight:500;}.iw{color:#e65100;font-weight:500;}
+.r2cd{background:white;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.07);}
+/* Toast & Confirm */
+.toast{position:fixed;bottom:24px;right:24px;background:#1d1d1f;color:white;padding:10px 18px;border-radius:10px;font-size:13px;z-index:2000;opacity:0;transition:opacity 0.3s;pointer-events:none;}
+.toast.show{opacity:1;}
+.del-confirm{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1100;align-items:center;justify-content:center;}
+.del-confirm.show{display:flex;}
+.del-box{background:white;border-radius:14px;padding:24px;width:360px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center;}
+.del-box h3{font-size:15px;font-weight:500;margin-bottom:8px;}
+.del-box p{font-size:13px;color:#6e6e73;margin-bottom:20px;}
+.ref-tag{font-size:10px;color:#6e6e73;font-family:monospace;}
+@media(max-width:600px){.r2{grid-template-columns:1fr;}.g6{grid-template-columns:repeat(2,1fr);}.form-grid2,.form-grid3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hdr">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAAcDUlEQVR42u18aZhcVbX2u9be59TYQ2ZGCYOACUYkgXCZKg0EQQN4hWoSAoQwJAwKKuLV+6mVuvfqVT8/EVEgDWGSCHbBVZQLiJBOM+O1nTCRgCAyCGTuTldXnXP2Xuv+qOrQIjJoEnj83E/yPEnVOfuc/Z6113rXu9YpwlYfSgDp7OJ355ggO19YpwjpWGVigcbCeFkNfgPSHu+G7vjhtaeubJymVOyscKXS6fE2DtqakxeLaioV8ifP/t756dTobyU+hoOHkIMSQYgAa0DWQpmQSH1IgWVKyeIfXVm8vTFHt6lUigKQvh0A8dacfPXq5Y0HINQKBZyLYlU/YqEKkUSTpCZJUvMAZW2Qm2XCth996KO3LZ953s2HNSyItFjsNn9XABWL3WavvZ4gAHhaH/5GPRpYbzgIgVcbAhERMQFGVTWOqz6OhoRNuhAE+d5jLvjBNwvFUr5S6fSFUo/9OwBIqVQqcaXS6bu6FiYAsBtN34/JWFXRN9jVRIAhInZJzYtL1KRaPpbZcf+HCwuun9Zb7nDbGqQt6oNKpRKXy2UBgHkn3DSDTPZkUfknYexDbODhIExQ1qYPAoQB5YYrFyYosPkYYUBVnEnnrENSi+P+s5dfNndpodRje8sdHn9uju9cgEoocRllmTXra2PHh7t/29hUJ5kAicZINIISGqAw3hpAjTjo1bKhMESSDH625+snfrnY3W0qnZ2ytUEyWw6cRTrvgxO3aw12WJYKWzviZMgnEomoNDYyEYEaQIAam0n/5P8NABublLD5WADExAJRL16CbNvMnfc/NnfHJzvvLnZ3m5WVCt7pANGM0nIaP77CGQn/O51qm1aLBmIwBSBiMEgJhJGLfosAgQhgEEjIu8QHuVGH7rT/se13frJ4Z6HUY//Qe72+Y510qdBjymWSliF3RjY16tBaNJAQIdxKHoFAsEltUxLkR3/84Iu/95Wm4zbvWAta/ofrFCXw4Is7XEvE40U9QOBhC3nFav42Cxo+tvmdER8nNtd22I7Tjonu/89j72takryjLKhUKjGB9Pn/2W0vhpnsfAQQtgmhUxWb1AadzY/+z4M/tfS0rUUB/iaAli9vnG8ou09oMwxVwTYaRERQMT6OPWXblxx48dJCb7nDFbu3LOP+mwCagRnNTEJ3ZjZQwrbNl4hIvSMAhtOtt0z7+JLdKp2dfkumJVuCSRPDTHjbsm0mliQWDsKxtnX096dc9H9zlUlFRanE7xSAFKoTVXXrSgOvD5Jx9arjTOuUsGWPpSiTFCdPJqjS2wUQLZi6OCj3drhCoWShdLDzERTEb58lsXVDA87k2o/f9z9uubLS2dSR/kaf9JYRbugzm0UsWnhM5Sth2HJx5Ia8GhgZDsfcSCWUVaWZWjTTCXqrqQaYIKwQ0sZ31DjHkwJMUMbmuZwlp60tNkr6r5r00++eW6lUPErKwHLG5DUNH7liBWHGDGDGDA96fZ2J/hpwZs68KLcnH3gqsT2bbWq/SCJRUlYGPFSUISAmYRgYhpomOBA4qMCICIiVibcAQKrNz4VB3jJiq05b8zZx1QcTij791IXFh16HL9DrgURvFZwFM79zVMq0fTPFmb0cYtSlLmqIBCowYLZpYhtASBH5Gjz8kBitA0TKlKMgFXIYwItH7OsQUqcGRonoLQKkDiJkjYEx8PDwEOcDhrPKsYVoPmNjjZGwv1dZ745t8qQ38C4djPfpYEdNagPp/v6r15155iAaJFX/KoCGwTln5tLZadN+E5SQSN0pKQtDYa0JggxircOp+40nWaYkDyc2flyi+mr2cW0o8BwEba0w6V1h6GCydpayOcCkMkh8HU4SL0wEIn5DgKBQQ6BMFklU9coyIMStJpc3PjCIKEFEMRIS70I2MroN0pJBQgmSTWsHvKF7xMotCn/3po98ZF0TB/2rLGgYnLOOum5qjsY8LKpGxCsahJ+CVAvVZagq5G5KNLr+2tvnPgTgTRHGf577nQM5zJ2shjpNmJ/g4JC4yAuBYMCvCRBB1ZiGj5P6l4a0em3gkw1s0+N8JnuQN2Z6EtK0xOjePmVzsfGRt7RKjNwuJLcndffYmo92Dm4RJ11CiVFahJXLv52dkNqxz3Jqz8RFHlAEJmXEeESIr4nigS9fd88ZTw6fVyj0WGA5xo+frKvPG0e9TzxBWLDAgWhz3B35uI6ev2RcaNo7ic0CDrNTPDycrzsxMAqiPwWIhMKQXG3g9PsunX3DwsKNn7CKe7593ymPjbz3SV/ufhdlM6PSQ398pu8zC/vTt9yyi4rsHnV2LkNPj8WaNYo3oSfR61nOpNXjqNzb4c49qlLJ2vYT6/EmD4KmbN4mMvR0rAPnLL77tJ8MHw8AlUqnoFQizJjB6OhwIy+UveHW8ZyndoioRuGG6tzj1o4Eq1Ao2Na9P1oEh1/gTH7vOKnCi/dk2AgrPMSZbIuJaxu+33tJ5wnFUneYfyDZKQ5k7dLpvxssYAa/sL5mfvetD0XQxqzbX/P9D8QtmX+NjWvxUe3/DBm9GytWKJrK598c5s89qvvrOTvqE7V4UwwCZ4I2W082Lt84+PRJNz588epSocdixnIpl8uCUokxeTKhyUH2uPTS1HO77HKoBHSsgA6DYldAW5pRYwBETxjRH2Qee37xwGfP26DNiDJrQSkr5n2fUBv8C4fpFhdX1bN6ZQKn0rY+uG76/WOe+Flx5WTaTDlKJQYWAWUSFGHeM6375Fpr5uJkuzHvjaprbwie7Dv3xXJ56PX8zZsESOmM427L52I/WT0+FZjsCYmvJ4bDIDApVJONN/3+973z7/rdZVGpULLl3rKDKqNS2QxMa3f3HrVc5hQhzEEY7qlhCMQx4BwgIx5cEAD5PKh/YGMwOHR8/YQT7p+0qBKsLHfGANBxxtV7pXLjvkrWHocggAYW9cHVVy6/dPa5pZJyuUxSKpV4OWZwb7lhrQd8vvtD9Wz4hWRs+wE1jpDU++e9cH7nDZtJY+dbK0TaP3fIkDAa6mBquSGdammLXQ2Gg0DhHt+UDHxt8U/mLNks0AOC87sNiDwAZG+9db84HX6sytSpuVwWUQTU64J6XZqsvaEsqnqk05YAYN3aZymVeUpIxoBIV3Z3ewBUKPWYnnLHKgDHf+D8m/eDbdnPbVr30vJvzrkdqlRetAiFUo8tlzscUJbpFyx9t2nLfsmlUidyPgNf3bQOtf6PvPDZU+5DT49tkkK/xZj0KTMvH99ux+4DtWNU3fOPrL3nZ319XUmppFyeXGmc13wa2e93T43D9KfUmKJmMgbVKiDiQMSvkc545POGBqs/56j+lWz/4N398+dvfPV9lUoluv3FHUx++z112DoAoFDqseNXrtHhrTV1wZfbsu3vvgBheLGGYUvETuuBrkkG137w8X8/vW/q4sVB38JG+WlLphp/vk9VqbBouRl5s9lbb35fnM5erMxzNJthDFYb1gEwiF5rbk+5nOGB/sum3H7XRX1dXUlzbsaiRUC5rIVCj+ntfeUaf2kcef7VO2hq9Gxv7Ucpm901jgch1jgX0pAbWnfEL74072dTFywO+rr+enBe14IUSp3FCk9avYL+rbfstHnw+BtuyA3kcpOS0JynNpir2XSwGRgi8zqU3qOlxZj1676e/HPxIqgSli83w/nQyJra1KkLgj33PGqiszzBU8yejfOMjAQYo4Q9NLDTvaHDKJtvTyRCLJGDtdDQcDS45pi+r51+95YA542jWNOphbdWLtDW1tOkVrNgjAXxjprNArVaYys1xCvzF+dT9cjlDA8M9LjjP3L4CJ+gI8looTAvvdN2x31SrZ3nWXZDEFpv0OBAxkADC7EEgSLROhJ1XgyRYxWbb7HR4OpPPPLVk7+xpcD5Myf9GmRIoEqmUrnV1evjENiTYMyOai0oSQDvFcZYzeWAwUFAVV9jaymMIYrqEQ/WFgIA1qzRYXAKhR5bqXS4j8xavHc+N2GpTbfsF0sdDjG8i8UroKzkhVU0VklExTCpESYmA6gPMjkbV9ff+chXT/5Gs+q6RcB5Y4Cai6gBLwD4PAGfz3V3T4rDcA+SpK7V+vM2CNKJS06SMPVpVQW8/9OtJuLR2mL55bVd8dy5T6Knxw4TyFKhx5Z7O9ycWdf/Uzo9+odkg7H1en8iTAZWG00NzUpG489w5QdQEBSqxJZcVBvUTQPnQpV6Fy3aorr4m8vmh/1Fx192nunK905J2tu+o4aBoZo08jESpMKQ4nhjun9w7+qqVWsAAOWyDINz8gevOyyTHv3fsCYfad2rYSMMeNNITBtbrJHhiyF41kYeZhSe1HG+1Q5tevGTD33jlEua1uO2PUAjjy+VCJMnU1N4UixaBPR1GUxbmKS++92j3ei2L8La/TQIGk+7Xq+Z/o1z4uKc24Z92jA4px695JBMetydYiifaOLFwjR1nTcEyLN4ymRNHG/6nxktjx24cvJk2hq1+i0nIzcXrwClf3DLDM92Ophdes262wfnz38cpRKPtJz5M5dMT2XG3i2GW2ONBYZ5GJQ3BggqlkUMaW1o7f4PXT7/l69SOt+BAL0elX81OB1L3pfJjl2m1oyOtC5qTEONfLMAkTrT0mqHBl763PJvz/1ioVSyveWyw1YYtFXm7O5mjBtHzeqioFyWBVMXB119C5PTD7vi3fnc9r1kg+3rUvdqyfimrvxmAHIs3mbyJor6H7jnshMPK3Z389Zsg9ka3Vo6bEUNyWQGryxOpq5KZ3Jax+LdW4IJPzYUbl9zdU+GzFtZlaooc0AuHhqg2tBpAOmkFSsUW7FHaJuVss6ZedMxAWWuspzaMZYh721D4xEDvGkLYnKUzdihTS/NWXbVaTdvLb+ztS2oCbxi4RE3Hxea9MGicqDl1KEAELuawNBbr1WpuiDTaquDq69adtVpNxdKPbayhUP6NrMgbTaunD/z1mfa0tu9qxb3w0mkqo2mA2WFN00Z9U1YkGd4k8qayFV/Xa3/avr4ocnJtuqd3iqV0M5ihQmkItEn68kmOEkiRbMj461bjjJbEh9V46F1s3uvL9cnTSrqtmos3yq9PCtXVrRUUv5/105Zue8usyQbjpopkkgzVWv0Ko4oAG5umGr++5XPoWD2JkyZWm3dKXffcEZvsdhtLr98n23WZrPVaunlMkmx2G2uvHfOvw9GL3/amtBYE7JCHIYV9dc3HAHIh+kWGw2u/9e7rjutUij12G397sZWj2Kbi45H3DgrtC2Xhya3cySDiFmcEsgbkBiQMuAYqobUkyrCwHIqjerQmi/eduPJn9saedbbtsVevd26i93mX26fs2q3naZ9J2UyRoknpcJ8loxtdsEygZnYGjJBmk2QZo/4hVq08YLblp58SbHYbe64fNbb8tbPNuNBIznL3ELXTvl8+4eV+AOeaZJnjFEGiaUNQvitsP5o3bpnbr777ovWbwuu8w4aSq9uj5s6dUEwZ9biscXiknGFQin9alDx/+MoocSlQo99LQBKJeVG6VrpnXCv9M64Bx15O4p/jH+Mf4x/jH+MhlccbpJqkrrNTnvSpKKWy/QXxajScLsJAGARyq/qtymVlEemHSND96RJRV25skKVyitKYAklXllsFANGfv7q8xoTLkIZf3q9zZXg15j7T+7nNc5t0I8KT1o9bvP6V45fow3F4E2E5L9nC3kjrkVndFy9SyYcNSaK62SJswpNk4EnE6y94q7iCgAer9HMcObhV01JBxMsk+hQvNEvWXb6r4e/KxRKdi+zy5R8uJ1Wo7Wy3WFPPVYul+VjR1+aqictU9JBi3OJtwObXl619KcXDgDAaR2Ld8+atnGxRpQLeMVld506MPyjBAumLgjq2f3f3xa2J8bmaWPtxU3X3XfGk69QBNKzCl075bPjt4td7FQk2MTPrbzxJxdXAWBe4dp0wOHkfNiiA/Hq6jU9Z60CQKWSUrlMctxBF7fsmN3/MAbvoRCrjDXikseTeu23Ns2tn0mblnPYGhAbUJMaqQg+dtRtv4zdwNzFy05dWSqVGGWgjLKc0XH1Lmkzqs+ALKlFivP1Mw+/auKSZWe/3FjUIlhuvYU42NVwtvrM8ol7AHgp8uP2zQVtjzgfI5dqB0hPAPBfAJAzo6/Lp8YcUo3WaxQNvhvAwIKpXbarDw6tHR1j06N/HLshMDOyQctvgdI+wCJtHpOE4aizQ277QqIbfC7dblDXiwB8HQAybHcxNv2zwOaR8vXbAHy4VOwOymWKFxxx/Ukp0/5Va1Lv2rx29eCUwRBtvJpB7FVFBeIYDMMNFdarc5mgdV9D6SXD2+zFqTsYAEiZ3IczQasVSRLvE5+yuXSA/H4AUCpWgt7esgOwQlWUyaTTnJkAAEZ4LyargNYVUILZAQDOPeTyUQzeQ8QpAb/u6jn9aQC0fX5PBaCWg9lErADi2NWU2e5+1szddwFIN+w2avgtPJHGjxY45+sKsqcXi0UDAGQsEyhR9UrEawCgXOmMzz586ex8OOFmJvOu2FVdow9Dmy0GFsSmjRUSKJQYhiM39Mta0n974mpPWg7sULTRE5kDnj1iz4nlclk27Daq4bTUzPHiVAGrpGo4UGJzGABg9bimz5InCETGBAasExsb2ryHyVCjlYYIoJ0BwKfa9ibiCQBIIH0AdMHUxbbc2+GKRy5uI8KxiasBQKgqEtpsaH04HQCyq6vcdNLppmjJsYs0NJn3jll33EEAKCGfUoUBiCBSBYCzCt/ZKTSZxc4n4sX5gNM29rWHavGmq2M3VEmk/pyqtjOBDBQwJmBP7lNX3HPSsWvoqf2dJE8bExhmZgsZ04wu/szDvzvFcmoaAIi6e1XleSIihjkIAF7cq8U3zBSrFALDAQzsbgBAhEmq0nRoCgLt2NBcgmmhzZKoQFUfBIAoHxoANAatH0oFLWMVSl6iHxJh0LAFszkUACZi4nCSEg5HMyL4wKRAlDoDgBofhkTEjauiDgCBTZ2bCVpbRRNvyCBym+Zdfs+JB19xb/Hsy+8tdm6sPTEllurnGEDQWJDASCMcV+75TL+q38hkVFUSErt+2AGnOJgb2owhIhIklwD4LRRQ6JQFhaVju7qmNbvG5EknSaMbhmjX5jbY26sDlILGy4m0Q2N1PJ2Ikbiah4t+2ly4A6Ck5jQCqapPYt30RVXd0Hj1ig5qBo9hES09Io4EsauB2Xx4XuHatLITar6IREQDAMBkjk98XUObCyI3uPiKe2ffMDIIXd/7iY1Llp3+U0tEQcMavHpNgvmHLBkXhJkTDIdTACJReXLDWPMMAHzs6EtTPkFRoagngy8vvmfuHece2X2gQI4JTLrdwx0A4A4AqJP/A/k4Ck06RcC7ioVSHqBdnI+9wG8AdCwRxpZKJV77IN5HIAj8s+vGp59QKFEvuYUfuHYiiy0olETlkSXLzv7puUdWHlfViQp6z1kzb5hY/knH75tEKMNkoZDVIrqajX1fJmhtT3z9WEAeN2SHpdyNRx99aUod9hD1pN4rqVxTLHabsf1+h4DTR8VJTaHKYANWQYqIISp1GN49k277bSZovYLAVtSJR3RxkzBRlIzrCIPsrqJeofL4R4/qPoAA73yklkMwzIxhEjlYfelFgq5uZujbtfPuU9JBLqXq14j6nzNZqCL/3PKdJ4F4YpOw/bxS6YwvOPrOEADYZ09K2Vxa1KuSX3XezMp0qG4QdZqyuZSR9EGvEBbKNOoBXFWKu4iIREUth/OI0LpZM2Aa2Kk2epzlIEVgOEnWD7J7plLp9Kp2n7RtvzobjF6ST0+4KjTZq5hY06oKUoQM+QWBBwgsChmsxqtnLr5n7h0LpvZZAGpg5hkO4XzdMQWHMFKPMgWLnMReVECgwjCzrjxyUU2B54gYSjSKKTwkMBko9FkQ+rjRsZdO2XwHE+e1ET0eAoDRtYxvRE6eqypIfN0zgjMshY8w29mxr3nDBkw4fITKnxUVAJrdKGv+K5HoWVUhgjkUnmY4n0hTTBkKbBwSEZp/q3W3KWo8EM0xGUSuFkWu6rzEL7MqMoACBKPin1Pow8aErCqpFGeeL6HEXX3TkvmHLBnHZD8YuyEQmSC0GWM4RGAyYDLW+TqI+L0LD79ux+HUQlWfAgBSaieiI4gYRLqKRH/RXFVGCR9kMkh8DRD/CACUezvcC0fucUBoMu+NXU0shzY0WTYcIjRZIpBxPgaBDlkwdXEwbEGAAqp887KPvwz4mwwHACjPFJypKl4bvwQSMWy/k0S1UVxpG4UgXSx2GzHyeC3uvwSkyjAWSjETUWZzNuOjCOTvgwpSNhcImeJw3pJK545Phy2tUHivybrIDz4Qu6EHYz/4gKjrV0BSNpshSh84Ij96ovmmeLshe5CIAxQrlKLfOYkBojwjKAAE5+O1A9XVvxlWEkNkTrEmBWYjTuI/xH7wgdgPPRC56oOqGnt1YLJ7SGvLns2rZZt7rQ6AYqldE7mqIyJYk9qVQKwqIIX/9r3z1kNlDaAITbaNbO7gSqXTX/mT2b+59MfHXgxVIWaoSt2qomne8N60GEb9wcTXYDgEKc0C8MVGGOV53ica2LRJ4uq/XXnvyd8cBuLcI753SSbMf7yxxW0HgFsbQUufEPUgkFFQ1ksCr25FosEfE18DgS2gbDiAk/qvGmnHBVQsfCtPwAmJq4HJ2CjZdFpXzyn3DV/vvCMr9xpOH85k2EtyMIAVBM5qI5omC6Yutl33znvinCO+tywbth8Vu6FEASMqIAPfYCH6kDWp451EPuT8ZWcffmPsuf6rQNP7E3MIKIioZgHKiYiANMl6H0T9tVVuVPZlwIxjtu8/8/CrJnhrQovUdCeJQuLExYM/UihdcPSd4ei7Hk1Wk9wv6i8UEVXFwZtzN3HPOF9XJVVSQuSqoiSrssHajd7tuNFw2Aq4mMiEovpw0wJ0lFl6ZGiz2zlxkvjac8+m1j1aKimvX3pnMPp3jyarFfcTmRmiAhAdBqCrQSJVALg+9DVnclcAehQaTQEi4pEkcQQADvVvEbV9WLwQM++cDdruSHymysw5FYgSRBVDTMAOgQmZiNMxrO3qW5gQaFUqyHI+PTYVUv74rLacnk+NDtJBC4v6n119/4LfLyqBRk9/NCmjLJH3fc5HZE3AoU3te1bHdZMAwIfyR68OocnYVJg3qn59PYmfu+yuCyOANqRtjpmDNBOzqnt0WD2wnLrQmjSyYSsDesddd10YYflyfun9g66Msij5hw0ZNmSYYWaefMjlo5QwKrRpJqKgr68rAZR+H669s5Zs+kM6bA0sBzYwKWZjYwDouufUewfr6/4jDNKGyEDEw3KQIxCYiEObYTBZK/CPRq7Koi5JkmoMAB7J951EHLshCLAnqx81GK1/wHJIovE1ADB5ZYU6K2UPAE/Jky9M0sm3xH5oO8MpsibYCcAKtkPrxaV+mPj6GKMBBPLY9b3z681U5M7E16c4H6n3sdbj2q8A4OWZE8ayQqrRhvsDm2Lv45uH9ZnuSlEIQIzBx4YS20sgA1KkU+FEQB+su+r2Xt3TDRmjwpXKhdE5R978DYE7MZF6IpoE8LwBaLYgL+v4/NlHLP1l2mTPU+i+ItIOqCPC2igZeMpr3P2/jDCI+qnjIusAAAAASUVORK5CYII=" alt="Logo Rawang">
+  <div class="hdr-txt">
+    <h1>Perkumpulan Rawang</h1>
+    <p>Laporan Realisasi Anggaran &middot; Tahun 2026</p>
+  </div>
+  <span class="bdg">&#128204; Live Data</span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showPg('ov',this)">&#128202; Overview</button>
+  <button class="tab" onclick="showPg('pc',this)">&#128181; Petty Cash</button>
+  <button class="tab" onclick="showPg('sv',this)">&#129297; Saving Program</button>
+  <button class="tab" onclick="showPg('an',this)">&#128200; Analitik</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="pg-ov" class="pg active">
+  <div class="g6">
+    <div class="kpi ka"><div class="lb">Saldo Petty Cash</div><div class="vl" id="ov-saldo">–</div><div class="sb" id="ov-saldo-sub">–</div></div>
+    <div class="kpi"><div class="lb">Total Saving</div><div class="vl">Rp 63,1 Jt</div><div class="sb">BNI Rawang</div></div>
+    <div class="kpi"><div class="lb">Total Masuk (PCI)</div><div class="vl ain" id="ov-masuk">–</div><div class="sb" style="color:#2e7d32">&#8593; Dana diterima</div></div>
+    <div class="kpi"><div class="lb">Total Keluar (PCO)</div><div class="vl aout" id="ov-keluar">–</div><div class="sb" style="color:#c62828">&#8595; Pengeluaran</div></div>
+    <div class="kpi"><div class="lb">Jumlah Transaksi</div><div class="vl" id="ov-trx">–</div><div class="sb">Jan&ndash;Jun 2026</div></div>
+    <div class="kpi"><div class="lb">Utilisasi Saving</div><div class="vl">51,5%</div><div class="sb">Dari total saving</div></div>
+  </div>
+  <div class="r2">
+    <div class="r2cd"><div class="ct">Arus Kas Bulanan (Petty Cash)</div><div style="height:210px;position:relative"><canvas id="c1"></canvas></div><div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:#6e6e73"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#4CAF50;margin-right:4px"></span>Masuk (PCI)</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#E53935;margin-right:4px"></span>Keluar (PCO)</span></div></div>
+    <div class="r2cd"><div class="ct">Komposisi Saving Program</div><div style="height:210px;position:relative"><canvas id="c2"></canvas></div></div>
+  </div>
+  <div class="cd"><div class="ct">Saldo Running Petty Cash (Jan&ndash;Jun 2026)</div><div style="height:160px;position:relative"><canvas id="c3"></canvas></div></div>
+</div>
+
+<!-- PETTY CASH -->
+<div id="pg-pc" class="pg">
+  <div class="g6">
+    <div class="kpi ka"><div class="lb">Saldo Akhir</div><div class="vl" id="pc-saldo">–</div><div class="sb" id="pc-saldo-tgl">–</div></div>
+    <div class="kpi"><div class="lb">Total PCI (Masuk)</div><div class="vl ain" id="pc-masuk">–</div><div class="sb" id="pc-masuk-n">–</div></div>
+    <div class="kpi"><div class="lb">Total PCO (Keluar)</div><div class="vl aout" id="pc-keluar">–</div><div class="sb" id="pc-keluar-n">–</div></div>
+    <div class="kpi"><div class="lb">Net Position</div><div class="vl" id="pc-net">–</div><div class="sb">Sisa saldo</div></div>
+  </div>
+
+  <div class="cd">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div class="ct" style="margin:0">Daftar Transaksi</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-purple" onclick="openModal()">&#43; Tambah</button>
+        <button class="btn btn-green" onclick="exportExcel()">&#11123; Download Excel</button>
+      </div>
+    </div>
+    <div class="fb">
+      <input class="sbx" type="text" id="srch" placeholder="&#128269; Cari keterangan / referensi..." oninput="fTrx()">
+      <select id="fJ" onchange="fTrx()"><option value="">Semua Jenis</option><option value="PCI">PCI (Masuk)</option><option value="PCO">PCO (Keluar)</option></select>
+      <select id="fB" onchange="fTrx()"><option value="">Semua Bulan</option><option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option><option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option><option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option></select>
+      <select id="fS" onchange="fTrx()"><option value="">Semua Sumber Dana</option><option>Koalisi Jaga Hutan Assessment</option><option>Koalisi Jaga Hutan Pilot</option><option>Petty Cash</option></select>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="tb">
+        <thead><tr>
+          <th>No</th><th>Tanggal</th><th>Referensi</th><th>Keterangan</th>
+          <th>Jenis</th><th style="text-align:right">Kredit (Masuk)</th>
+          <th style="text-align:right">Debit (Keluar)</th><th style="text-align:right">Saldo</th>
+          <th>Sumber Dana</th><th>Bank</th><th style="text-align:center">Aksi</th>
+        </tr></thead>
+        <tbody id="tBody"></tbody>
+      </table>
+    </div>
+    <div class="pg-row">
+      <span id="tInfo"></span>
+      <div style="display:flex;gap:6px">
+        <button onclick="pPg()">&#8249; Sebelumnya</button>
+        <button onclick="nPg()">Berikutnya &#8250;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="r2">
+    <div class="r2cd"><div class="ct">Top 10 Pengeluaran Terbesar</div><div style="height:290px;position:relative"><canvas id="c4"></canvas></div></div>
+    <div class="r2cd"><div class="ct">Pengeluaran per Kategori</div><div style="height:210px;position:relative"><canvas id="c5"></canvas></div><div id="kLeg" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:11px;color:#6e6e73"></div></div>
+  </div>
+</div>
+
+<!-- SAVING -->
+<div id="pg-sv" class="pg">
+  <div class="g6">
+    <div class="kpi ka"><div class="lb">Total Saving</div><div class="vl">Rp 63.132.545</div><div class="sb">BNI Rawang</div></div>
+    <div class="kpi"><div class="lb">Beban Gaji</div><div class="vl" style="color:#c62828">36.000.000</div><div class="sb">3 bulan honorarium</div></div>
+    <div class="kpi"><div class="lb">Beban Petty Cash</div><div class="vl" style="color:#c62828">7.500.000</div><div class="sb">3x top-up dari saving</div></div>
+    <div class="kpi"><div class="lb">Sisa Saving Bersih</div><div class="vl">19.632.545</div><div class="sb">Setelah beban terbayar</div></div>
+  </div>
+  <div class="r2">
+    <div class="r2cd">
+      <div class="ct">Rincian Program Saving</div>
+      <div class="si"><div class="sir"><span class="sn">Assessment Koalisi Jaga Hutan</span><span class="sa">Rp 10.000.000</span></div><div class="sd">2 Mar 2026 &middot; BNI Rawang &middot; Saving Rumah</div></div>
+      <div class="si"><div class="sir"><span class="sn">Greenpeace (Titip)</span><span class="sa">Rp 31.500.000</span></div><div class="sd">1 Jan 2026 &middot; BNI Rawang</div></div>
+      <div class="si"><div class="sir"><span class="sn">KJH &middot; Saving FPIC Hutan Alam</span><span class="sa">Rp 17.040.131</span></div><div class="sd">11 Mei 2026 &middot; BNI Rawang</div></div>
+      <div class="si"><div class="sir"><span class="sn">KJH &middot; Saving FGD Loss and Damage</span><span class="sa">Rp 2.174.000</span></div><div class="sd">BNI Rawang</div></div>
+      <div class="si"><div class="sir"><span class="sn">Saving FGD PILNET</span><span class="sa">Rp 1.000.000</span></div><div class="sd">11 Mei 2026 &middot; Non Program</div></div>
+      <div class="si"><div class="sir"><span class="sn">Reimburse Utilitas April</span><span class="sa">Rp 1.418.414</span></div><div class="sd">Non Program &middot; BNI Rawang</div></div>
+      <div class="tr2"><span>Total Saving</span><span>Rp 63.132.545</span></div>
+    </div>
+    <div class="r2cd">
+      <div class="ct">Beban Terbayar dari Saving</div>
+      <div style="font-size:11px;font-weight:600;color:#6e6e73;margin-bottom:7px;text-transform:uppercase;letter-spacing:0.5px">Beban Gaji Staf</div>
+      <div class="bi2"><div><div style="font-size:12px">Honorarium Staf Bulan Maret</div><div style="font-size:11px;color:#6e6e73">10 Apr 2026</div></div><div class="ba">Rp 12.000.000</div></div>
+      <div class="bi2"><div><div style="font-size:12px">Honorarium Staf Bulan April</div><div style="font-size:11px;color:#6e6e73">10 Mei 2026</div></div><div class="ba">Rp 12.000.000</div></div>
+      <div class="bi2"><div><div style="font-size:12px">Honorarium Staf Bulan Juni</div><div style="font-size:11px;color:#6e6e73">11 Jun 2026</div></div><div class="ba">Rp 12.000.000</div></div>
+      <div style="font-size:11px;font-weight:600;color:#6e6e73;margin:10px 0 7px;text-transform:uppercase;letter-spacing:0.5px">Beban Petty Cash</div>
+      <div class="bi2"><div><div style="font-size:12px">Petty Cash Januari</div><div style="font-size:11px;color:#6e6e73">1 Jan 2026</div></div><div class="ba">Rp 2.500.000</div></div>
+      <div class="bi2"><div><div style="font-size:12px">Petty Cash Maret</div><div style="font-size:11px;color:#6e6e73">1 Mar 2026</div></div><div class="ba">Rp 2.500.000</div></div>
+      <div class="bi2"><div><div style="font-size:12px">Petty Cash Mei</div><div style="font-size:11px;color:#6e6e73">12 Mei 2026</div></div><div class="ba">Rp 2.500.000</div></div>
+      <div class="tr2"><span>Total Beban</span><span style="color:#c62828">Rp 43.500.000</span></div>
+    </div>
+  </div>
+  <div class="cd"><div class="ct">Saving vs Beban Terbayar</div><div style="height:180px;position:relative"><canvas id="c6"></canvas></div></div>
+</div>
+
+<!-- ANALITIK -->
+<div id="pg-an" class="pg">
+  <div class="r2">
+    <div class="r2cd">
+      <div class="ct">Financial Health Score</div>
+      <div style="text-align:center;padding:10px 0">
+        <div style="width:110px;height:110px;margin:0 auto 12px;position:relative"><canvas id="c7" width="110" height="110"></canvas></div>
+        <div style="font-size:28px;font-weight:500;color:#6A1B9A" id="health-num">62 / 100</div>
+        <div style="font-size:13px;color:#6e6e73;margin-top:4px">Kondisi Cukup Baik</div>
+      </div>
+      <div id="health-ind" style="margin-top:12px"></div>
+    </div>
+    <div class="r2cd"><div class="ct">Tren Pengeluaran Bulanan</div><div style="height:230px;position:relative"><canvas id="c8"></canvas></div></div>
+  </div>
+  <div class="cd"><div class="ct">Pengeluaran per Kategori</div><div id="kProg" style="padding-top:4px"></div></div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOut(event)">
+  <div class="modal">
+    <h3 id="modalTitle">Tambah Transaksi</h3>
+    <div class="form-grid2">
+      <div class="form-row"><label>Tanggal *</label><input type="date" id="f-tgl"></div>
+      <div class="form-row"><label>Jenis *</label>
+        <select id="f-jenis" onchange="updLbl()">
+          <option value="PCO">PCO &ndash; Keluar</option>
+          <option value="PCI">PCI &ndash; Masuk</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>Referensi</label><input type="text" id="f-ref" placeholder="cth: 001/PCO/KJH1/0726"></div>
+    <div class="form-row"><label>Keterangan *</label><input type="text" id="f-ket" placeholder="cth: Pembelian ATK Kantor"></div>
+    <div class="form-row"><label id="f-nom-lbl">Jumlah Debit / Keluar (Rp) *</label><input type="number" id="f-nominal" placeholder="cth: 150000" min="0"></div>
+    <div class="form-grid2">
+      <div class="form-row"><label>Sumber Dana</label>
+        <select id="f-sumber">
+          <option value="">– Pilih –</option>
+          <option>Koalisi Jaga Hutan Assessment</option>
+          <option>Koalisi Jaga Hutan Pilot</option>
+          <option>Petty Cash</option>
+          <option>Lainnya</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Bank</label>
+        <select id="f-bank">
+          <option value="">– Pilih –</option>
+          <option>Mandiri</option>
+          <option>BNI</option>
+          <option>BCA</option>
+          <option>Lainnya</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal()">Batal</button>
+      <button class="btn btn-purple" id="modalSaveBtn" onclick="saveTrx()">&#10003; Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- KONFIRMASI HAPUS -->
+<div class="del-confirm" id="delConfirm">
+  <div class="del-box">
+    <h3>&#128465; Hapus Transaksi?</h3>
+    <p id="delDesc">Data akan dihapus permanen.</p>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn btn-gray" onclick="closeDel()">Batal</button>
+      <button class="btn btn-red" onclick="confirmDel()">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'rawang_pc_2026_v2';
+
+const DATA_AWAL = [
+  {id:1,no:1,t:'2026-01-01',j:'PCI',ref:'001/PCI/KJH1/0126',k:'Pemindahan Dana Ke Patty Cash',kredit:24440000,debit:0,saldo_asli:24440000,sumber:'',bank:'',nominal:24440000,b:'01'},
+  {id:2,no:2,t:'2026-01-22',j:'PCO',ref:'002/PCO/KJH1/0126',k:'Transport Minggu Pertama Januari',kredit:0,debit:350000,saldo_asli:24090000,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:350000,b:'01'},
+  {id:3,no:3,t:'2026-01-26',j:'PCO',ref:'003/PCO/KJH1/0126',k:'Transport Minggu Kedua Januari',kredit:0,debit:490000,saldo_asli:23600000,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:490000,b:'01'},
+  {id:4,no:4,t:'2026-01-30',j:'PCO',ref:'004/PCO/KJH1/0126',k:'Transport Minggu Ketiga Januari',kredit:0,debit:245000,saldo_asli:23355000,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:245000,b:'01'},
+  {id:5,no:5,t:'2026-01-23',j:'PCO',ref:'005/PCO/KJH1/0126',k:'Pembelian Sembako',kredit:0,debit:254300,saldo_asli:23100700,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:254300,b:'01'},
+  {id:6,no:6,t:'2026-01-22',j:'PCO',ref:'006/PCO/KJH1/0126',k:'Biaya Iklan Instagram',kredit:0,debit:110250,saldo_asli:22990450,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:110250,b:'01'},
+  {id:7,no:7,t:'2026-01-22',j:'PCO',ref:'007/PCO/KJH1/0126',k:'Biaya Administrasi Transaksi',kredit:0,debit:18000,saldo_asli:22972450,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:18000,b:'01'},
+  {id:8,no:8,t:'2026-01-26',j:'PCO',ref:'008/PCO/KJH1/0126',k:'Pembelian Galon dan Obat Nyamuk',kredit:0,debit:97300,saldo_asli:22875150,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:97300,b:'01'},
+  {id:9,no:9,t:'2026-01-31',j:'PCO',ref:'009/PCO/KJH1/0126',k:'Pembelian Galon, Gula, Cleo Mini',kredit:0,debit:113000,saldo_asli:22762150,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:113000,b:'01'},
+  {id:10,no:10,t:'2026-01-31',j:'PCO',ref:'010/PCO/KJH1/0126',k:'Pembelian Kursi Kantor',kredit:0,debit:499719,saldo_asli:22262431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:499719,b:'01'},
+  {id:11,no:11,t:'2026-01-31',j:'PCO',ref:'011/PCO/KJH1/0126',k:'Pembelian Teko Air',kredit:0,debit:51400,saldo_asli:22211031,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:51400,b:'01'},
+  {id:12,no:12,t:'2026-01-31',j:'PCO',ref:'012/PCO/KJH1/0126',k:'Pembelian Rak Sepatu',kredit:0,debit:52000,saldo_asli:22159031,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:52000,b:'01'},
+  {id:13,no:13,t:'2026-01-31',j:'PCO',ref:'013/PCO/KJH1/0126',k:'Spidol Snowman',kredit:0,debit:91100,saldo_asli:22067931,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:91100,b:'01'},
+  {id:14,no:14,t:'2026-01-31',j:'PCO',ref:'014/PCO/KJH1/0126',k:'Biaya Administrasi Rekening Bulanan',kredit:0,debit:37500,saldo_asli:22030431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:37500,b:'01'},
+  {id:15,no:15,t:'2026-01-21',j:'PCO',ref:'015/PCO/KJH1/0126',k:'Pembelian Peralatan Podcast',kredit:0,debit:3123000,saldo_asli:18907431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:3123000,b:'01'},
+  {id:16,no:16,t:'2026-01-22',j:'PCO',ref:'016/PCO/KJH1/0126',k:'Pembelian Keperluan ATK',kredit:0,debit:991000,saldo_asli:17916431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:991000,b:'01'},
+  {id:17,no:17,t:'2026-01-23',j:'PCO',ref:'017/PCO/KJH1/0126',k:'Pembelian Kaos',kredit:0,debit:2374000,saldo_asli:15542431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:2374000,b:'01'},
+  {id:18,no:18,t:'2026-01-23',j:'PCO',ref:'018/PCO/KJH1/0126',k:'Biaya Pengambilan Data Lapangan',kredit:0,debit:8189000,saldo_asli:7353431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:8189000,b:'01'},
+  {id:19,no:19,t:'2026-01-29',j:'PCO',ref:'019/PCO/KJH1/0126',k:'Biaya Sewa Speedboat',kredit:0,debit:2800000,saldo_asli:4553431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:2800000,b:'01'},
+  {id:20,no:20,t:'2026-01-30',j:'PCO',ref:'020/PCO/KJH1/0126',k:'Biaya Sewa Mobil Pulang',kredit:0,debit:500000,saldo_asli:4053431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:500000,b:'01'},
+  {id:21,no:21,t:'2026-02-03',j:'PCO',ref:'001/PCO/KJH1/0226',k:'Kabel Podcast',kredit:0,debit:95000,saldo_asli:3958431,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:95000,b:'02'},
+  {id:22,no:22,t:'2026-02-04',j:'PCO',ref:'002/PCO/KJH1/0226',k:'Sembako Kantor',kredit:0,debit:278400,saldo_asli:3680031,sumber:'Petty Cash',bank:'Mandiri',nominal:278400,b:'02'},
+  {id:23,no:23,t:'2026-02-04',j:'PCO',ref:'003/PCO/KJH1/0226',k:'Cat dan Aksesorisnya',kredit:0,debit:609265,saldo_asli:3070766,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:609265,b:'02'},
+  {id:24,no:24,t:'2026-02-05',j:'PCO',ref:'004/PCO/KJH1/0226',k:'Tagihan Air PDAM dan WIFI',kredit:0,debit:397288,saldo_asli:2673478,sumber:'Petty Cash',bank:'Mandiri',nominal:397288,b:'02'},
+  {id:25,no:25,t:'2026-02-07',j:'PCO',ref:'005/PCO/KJH1/0226',k:'Pembayaran Transport M1 Februari',kredit:0,debit:490900,saldo_asli:2182578,sumber:'Petty Cash',bank:'Mandiri',nominal:490900,b:'02'},
+  {id:26,no:26,t:'2026-02-09',j:'PCO',ref:'006/PCO/KJH1/0226',k:'Pembelian Materai 3 pcs',kredit:0,debit:34500,saldo_asli:2148078,sumber:'Petty Cash',bank:'Mandiri',nominal:34500,b:'02'},
+  {id:27,no:27,t:'2026-02-15',j:'PCO',ref:'007/PCO/KJH1/0226',k:'Pembayaran Transport M2 Februari',kredit:0,debit:385325,saldo_asli:1762753,sumber:'Petty Cash',bank:'Mandiri',nominal:385325,b:'02'},
+  {id:28,no:28,t:'2026-02-20',j:'PCO',ref:'008/PCO/KJH1/0226',k:'Listrik',kredit:0,debit:503000,saldo_asli:1259753,sumber:'Koalisi Jaga Hutan Assessment',bank:'Mandiri',nominal:503000,b:'02'},
+  {id:29,no:29,t:'2026-02-21',j:'PCO',ref:'009/PCO/KJH1/0226',k:'Pembelian Sembako dan Air Isi Ulang',kredit:0,debit:126325,saldo_asli:1133428,sumber:'Petty Cash',bank:'Mandiri',nominal:126325,b:'02'},
+  {id:30,no:30,t:'2026-02-22',j:'PCO',ref:'010/PCO/KJH1/0226',k:'Biaya Admin Kartu Debit',kredit:0,debit:8500,saldo_asli:1124928,sumber:'Petty Cash',bank:'Mandiri',nominal:8500,b:'02'},
+  {id:31,no:31,t:'2026-02-23',j:'PCO',ref:'011/PCO/KJH1/0226',k:'Pembayaran Transport M3 Februari',kredit:0,debit:70341,saldo_asli:1054587,sumber:'Petty Cash',bank:'Mandiri',nominal:70341,b:'02'},
+  {id:32,no:32,t:'2026-02-23',j:'PCO',ref:'012/PCO/KJH1/0226',k:'Kelas Kader Hijau 2 Hari',kredit:0,debit:401335,saldo_asli:653252,sumber:'Petty Cash',bank:'Mandiri',nominal:401335,b:'02'},
+  {id:33,no:33,t:'2026-02-24',j:'PCI',ref:'013/PCI/KJH1/0126',k:'Penerimaan Dana',kredit:1845000,debit:0,saldo_asli:2498252,sumber:'Petty Cash',bank:'Mandiri',nominal:1845000,b:'02'},
+  {id:34,no:34,t:'2026-02-26',j:'PCO',ref:'014/PCO/KJH1/0226',k:'Pembelian Gembok',kredit:0,debit:42525,saldo_asli:2455727,sumber:'Petty Cash',bank:'Mandiri',nominal:42525,b:'02'},
+  {id:35,no:35,t:'2026-02-28',j:'PCO',ref:'015/PCO/KJH1/0226',k:'Biaya administrasi rekening dan saldo minimum',kredit:0,debit:37500,saldo_asli:2418227,sumber:'Petty Cash',bank:'Mandiri',nominal:37500,b:'02'},
+  {id:36,no:36,t:'2026-03-01',j:'PCI',ref:'001/PCI/KJH1/0326',k:'Petty Cash',kredit:2500000,debit:0,saldo_asli:4918227,sumber:'',bank:'',nominal:2500000,b:'03'},
+  {id:37,no:37,t:'2026-03-02',j:'PCO',ref:'002/PCO/KJH1/0326',k:'Pembayaran Transport Renstra',kredit:0,debit:560325,saldo_asli:4357902,sumber:'',bank:'',nominal:560325,b:'03'},
+  {id:38,no:38,t:'2026-03-02',j:'PCO',ref:'003/PCO/KJH1/0326',k:'Pembayaran Transport Minggu 4 Februari',kredit:0,debit:525000,saldo_asli:3832902,sumber:'',bank:'',nominal:525000,b:'03'},
+  {id:39,no:39,t:'2026-03-02',j:'PCO',ref:'004/PCO/KJH1/0326',k:'Transfer admin giro Mbak Tika',kredit:0,debit:25000,saldo_asli:3807902,sumber:'',bank:'',nominal:25000,b:'03'},
+  {id:40,no:40,t:'2026-03-02',j:'PCO',ref:'005/PCO/KJH1/0326',k:'Pembayaran Sampah Perumahan',kredit:0,debit:51330,saldo_asli:3756572,sumber:'',bank:'',nominal:51330,b:'03'},
+  {id:41,no:41,t:'2026-03-02',j:'PCO',ref:'006/PCO/KJH1/0326',k:'Penukaran Keperluan Bukber',kredit:0,debit:989000,saldo_asli:2767572,sumber:'',bank:'',nominal:989000,b:'03'},
+  {id:42,no:42,t:'2026-03-02',j:'PCO',ref:'007/PCO/KJH1/0326',k:'Pembelian Roti Tali Asih untuk Jaringan (Zelvan)',kredit:0,debit:195000,saldo_asli:2572572,sumber:'',bank:'',nominal:195000,b:'03'},
+  {id:43,no:43,t:'2026-03-03',j:'PCO',ref:'008/PCO/KJH1/0326',k:'Pembelian Sembako Kantor Fresh Skip',kredit:0,debit:132800,saldo_asli:2439772,sumber:'',bank:'',nominal:132800,b:'03'},
+  {id:44,no:44,t:'2026-03-03',j:'PCO',ref:'009/PCO/KJH1/0326',k:'Pembelian Kabel Listrik dan Stop Kontak',kredit:0,debit:87500,saldo_asli:2352272,sumber:'',bank:'',nominal:87500,b:'03'},
+  {id:45,no:45,t:'2026-03-04',j:'PCO',ref:'010/PCO/KJH1/0326',k:'Pembelian Gembok Pin Pagar Dalam',kredit:0,debit:82000,saldo_asli:2270272,sumber:'',bank:'',nominal:82000,b:'03'},
+  {id:46,no:46,t:'2026-03-05',j:'PCO',ref:'011/PCO/KJH1/0326',k:'Pembayaran Wifi',kredit:0,debit:354500,saldo_asli:1915772,sumber:'',bank:'',nominal:354500,b:'03'},
+  {id:47,no:47,t:'2026-03-06',j:'PCO',ref:'012/PCO/KJH1/0326',k:'Pembelian air galon isi ulang dan sunlight',kredit:0,debit:45300,saldo_asli:1870472,sumber:'',bank:'',nominal:45300,b:'03'},
+  {id:48,no:48,t:'2026-03-08',j:'PCO',ref:'013/PCO/KJH1/0326',k:'Jilid Spiral Laporan Assessment',kredit:0,debit:15000,saldo_asli:1855472,sumber:'',bank:'',nominal:15000,b:'03'},
+  {id:49,no:49,t:'2026-03-08',j:'PCO',ref:'014/PCO/KJH1/0326',k:'Pembayaran Transport Minggu 1 Maret',kredit:0,debit:350325,saldo_asli:1505147,sumber:'',bank:'',nominal:350325,b:'03'},
+  {id:50,no:50,t:'2026-03-08',j:'PCI',ref:'015/PCI/KJH1/0326',k:'Setor Tunai',kredit:5690000,debit:0,saldo_asli:7195147,sumber:'',bank:'',nominal:5690000,b:'03'},
+  {id:51,no:51,t:'2026-03-10',j:'PCO',ref:'016/PCO/KJH1/0326',k:'Closing Assesment',kredit:0,debit:1001329,saldo_asli:6193818,sumber:'',bank:'',nominal:1001329,b:'03'},
+  {id:52,no:52,t:'2026-03-11',j:'PCO',ref:'017/PCO/KJH1/0326',k:'Pembayaran Utilitas Bulan Maret',kredit:0,debit:1037325,saldo_asli:5156493,sumber:'',bank:'',nominal:1037325,b:'03'},
+  {id:53,no:53,t:'2026-03-11',j:'PCO',ref:'018/PCO/KJH1/0326',k:'Pembayaran AC',kredit:0,debit:2191325,saldo_asli:2965168,sumber:'',bank:'',nominal:2191325,b:'03'},
+  {id:54,no:54,t:'2026-03-11',j:'PCI',ref:'019/PCI/KJH1/0326',k:'Reimburs Utilitas Februari GP',kredit:1488398,debit:0,saldo_asli:4453566,sumber:'',bank:'',nominal:1488398,b:'03'},
+  {id:55,no:55,t:'2026-03-14',j:'PCO',ref:'018/PCO/KJH1/0326',k:'Pembayaran Transport Minggu 2 Maret',kredit:0,debit:280331,saldo_asli:4173235,sumber:'',bank:'',nominal:280331,b:'03'},
+  {id:56,no:56,t:'2026-03-22',j:'PCO',ref:'020/PCO/KJH1/0326',k:'Administrasi Kartu Debit',kredit:0,debit:9000,saldo_asli:4164235,sumber:'',bank:'',nominal:9000,b:'03'},
+  {id:57,no:57,t:'2026-03-31',j:'PCO',ref:'021/PCO/KJH1/0326',k:'Kertas A4',kredit:0,debit:46000,saldo_asli:4118235,sumber:'',bank:'',nominal:46000,b:'03'},
+  {id:58,no:58,t:'2026-03-31',j:'PCO',ref:'022/PCO/KJH1/0326',k:'Sembako Kantor',kredit:0,debit:40000,saldo_asli:4078235,sumber:'',bank:'',nominal:40000,b:'03'},
+  {id:59,no:59,t:'2026-03-31',j:'PCO',ref:'023/PCO/KJH1/0326',k:'Biaya Administrasi Rekening',kredit:0,debit:13000,saldo_asli:4065235,sumber:'',bank:'',nominal:13000,b:'03'},
+  {id:60,no:60,t:'2026-03-31',j:'PCO',ref:'001/PCO/KJH1/0326',k:'Biaya Saldo Minimum',kredit:0,debit:25000,saldo_asli:4040235,sumber:'',bank:'',nominal:25000,b:'03'},
+  {id:61,no:61,t:'2026-04-04',j:'PCO',ref:'002/PCO/KJH1/0326',k:'Pembayaran Uang Terhutang',kredit:0,debit:379100,saldo_asli:3661135,sumber:'',bank:'',nominal:379100,b:'04'},
+  {id:62,no:62,t:'2026-04-07',j:'PCO',ref:'003/PCO/KJH1/0326',k:'Utilitas WIFI',kredit:0,debit:352500,saldo_asli:3308635,sumber:'',bank:'',nominal:352500,b:'04'},
+  {id:63,no:63,t:'2026-04-13',j:'PCO',ref:'004/PCO/KJH1/0326',k:'Transport Staf',kredit:0,debit:490000,saldo_asli:2818635,sumber:'',bank:'',nominal:490000,b:'04'},
+  {id:64,no:64,t:'2026-04-14',j:'PCO',ref:'005/PCO/KJH1/0326',k:'Utilitas Air',kredit:0,debit:54324,saldo_asli:2764311,sumber:'',bank:'',nominal:54324,b:'04'},
+  {id:65,no:65,t:'2026-04-14',j:'PCO',ref:'006/PCO/KJH1/0326',k:'Terhutang untuk DDI',kredit:0,debit:737820,saldo_asli:2026491,sumber:'',bank:'',nominal:737820,b:'04'},
+  {id:66,no:66,t:'2026-05-01',j:'PCO',ref:'001/PCO/KJH2/0526',k:'Pembayaran Transport Staf 3 Minggu April',kredit:0,debit:1482500,saldo_asli:543991,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:1482500,b:'05'},
+  {id:67,no:67,t:'2026-05-03',j:'PCO',ref:'002/PCO/KJH2/0526',k:'Utilitas Sampah dan Keamanan Bulan Mei',kredit:0,debit:100000,saldo_asli:443991,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:100000,b:'05'},
+  {id:68,no:68,t:'2026-05-05',j:'PCO',ref:'003/PCO/KJH2/0526',k:'Pembelian Telur',kredit:0,debit:15333,saldo_asli:428658,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:15333,b:'05'},
+  {id:69,no:69,t:'2026-05-05',j:'PCO',ref:'004/PCO/KJH2/0526',k:'Utilitas Wifi',kredit:0,debit:352327,saldo_asli:76331,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:352327,b:'05'},
+  {id:70,no:70,t:'2026-05-05',j:'PCO',ref:'005/PCO/KJH2/0526',k:'Utilitas Air',kredit:0,debit:68860,saldo_asli:7471,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:68860,b:'05'},
+  {id:71,no:71,t:'2026-05-05',j:'PCO',ref:'006/PCO/KJH2/0526',k:'Pembelian Keperluan Kantor (Trash Bag, Sapu Lidi, Sunlight, Telur',kredit:0,debit:82900,saldo_asli:-75429,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:82900,b:'05'},
+  {id:72,no:72,t:'2026-05-06',j:'PCO',ref:'007/PCO/KJH2/0526',k:'Silinder Kunci Pintu',kredit:0,debit:47500,saldo_asli:-122929,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:47500,b:'05'},
+  {id:73,no:73,t:'2026-05-07',j:'PCI',ref:'008/PCI/KJH2/0526',k:'Penyeimbang',kredit:122929,debit:0,saldo_asli:0,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:122929,b:'05'},
+  {id:74,no:74,t:'2026-05-12',j:'PCI',ref:'009/PCI/KJH2/0526',k:'Pemasukan Petty Cash Bulan Mei',kredit:2500000,debit:0,saldo_asli:2500000,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:2500000,b:'05'},
+  {id:75,no:75,t:'2026-05-16',j:'PCO',ref:'010/PCO/KJH2/0526',k:'Pembayaran Uang Transport Staf 2 Minggu Terakhir',kredit:0,debit:878500,saldo_asli:1621500,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:878500,b:'05'},
+  {id:76,no:76,t:'2026-05-17',j:'PCO',ref:'011/PCO/KJH2/0526',k:'Pembelian Isi Thermal Roll Struk Kasir',kredit:0,debit:72180,saldo_asli:1549320,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:72180,b:'05'},
+  {id:77,no:77,t:'2026-05-25',j:'PCO',ref:'012/PCO/KJH2/0526',k:'Transport Mingguan Staf',kredit:0,debit:320000,saldo_asli:1229320,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:320000,b:'05'},
+  {id:78,no:78,t:'2026-06-01',j:'PCO',ref:'001/PCO/KJH2/0626',k:'Pembelian Sembako, Air Isi Ulang',kredit:0,debit:151200,saldo_asli:1078120,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:151200,b:'06'},
+  {id:79,no:79,t:'2026-06-02',j:'PCO',ref:'002/PCO/KJH2/0626',k:'Konsumsi Rapat',kredit:0,debit:207000,saldo_asli:871120,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:207000,b:'06'},
+  {id:80,no:80,t:'2026-06-05',j:'PCO',ref:'003/PCO/KJH2/0626',k:'Pembayaran Wifi',kredit:0,debit:354500,saldo_asli:516620,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:354500,b:'06'},
+  {id:81,no:81,t:'2026-06-08',j:'PCO',ref:'004/PCO/KJH2/0626',k:'Pembelian Tissue Nice',kredit:0,debit:41550,saldo_asli:475070,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:41550,b:'06'},
+  {id:82,no:82,t:'2026-06-09',j:'PCO',ref:'005/PCO/KJH2/0626',k:'Tagihan Air PDAM',kredit:0,debit:58458,saldo_asli:416612,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:58458,b:'06'},
+  {id:83,no:83,t:'2026-06-10',j:'PCI',ref:'006/PCI/KJH2/0626',k:'Reimburs Utilitas Bulan Mei',kredit:1452500,debit:0,saldo_asli:1869112,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:1452500,b:'06'},
+  {id:84,no:84,t:'2026-06-11',j:'PCO',ref:'007/PCO/KJH2/0626',k:'Keamanan Komplek Bulanan',kredit:0,debit:32500,saldo_asli:1836612,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:32500,b:'06'},
+  {id:85,no:85,t:'2026-06-11',j:'PCO',ref:'008/PCO/KJH2/0626',k:'Kebutuhan Bulanan Sembako Kantor',kredit:0,debit:338400,saldo_asli:1498212,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:338400,b:'06'},
+  {id:86,no:86,t:'2026-06-11',j:'PCO',ref:'009/PCO/KJH2/0626',k:'Pembelian E Materai',kredit:0,debit:10070,saldo_asli:1488142,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:10070,b:'06'},
+  {id:87,no:87,t:'2026-06-11',j:'PCO',ref:'010/PCO/KJH2/0626',k:'Materai Indomaret',kredit:0,debit:23400,saldo_asli:1464742,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:23400,b:'06'},
+  {id:88,no:88,t:'2026-06-12',j:'PCO',ref:'011/PCO/KJH2/0626',k:'Nota dan Kwitansi Staf Finance',kredit:0,debit:10000,saldo_asli:1454742,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:10000,b:'06'},
+  {id:89,no:89,t:'2026-06-13',j:'PCO',ref:'012/PCO/KJH2/0626',k:'Transport Piket Staf Tanggal',kredit:0,debit:986500,saldo_asli:468242,sumber:'Koalisi Jaga Hutan Pilot',bank:'BNI',nominal:986500,b:'06'},
+];
+
+
+function loadData() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) return JSON.parse(s); } catch(e) {}
+  return JSON.parse(JSON.stringify(DATA_AWAL));
+}
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(D)); } catch(e) {}
+}
+
+let D = loadData();
+let nextId = Math.max(...D.map(d=>d.id), 0) + 1;
+
+// Hitung nomor urut & saldo kumulatif berdasarkan urutan tanggal+id
+function hitungSaldo(data) {
+  const sorted = [...data].sort((a,b) => (a.t||'').localeCompare(b.t||'') || a.id - b.id);
+  let saldo = 0, no = 1;
+  sorted.forEach(d => {
+    if (d.j === 'PCI') saldo += d.nominal; else saldo -= d.nominal;
+    d.saldo_calc = saldo;
+    d.no_urut = no++;
+  });
+  return sorted;
+}
+
+// Auto-generate nomor referensi
+function autoRef(jenis, tgl) {
+  if (!tgl) return '';
+  const bln = tgl.slice(5,7);
+  const thn = tgl.slice(2,4);
+  const existing = D.filter(d => d.j === jenis && d.b === bln);
+  const nxt = String(existing.length + 1).padStart(3,'0');
+  const kode = D.some(d => d.sumber && d.sumber.includes('Pilot')) && bln >= '05' ? 'KJH2' : 'KJH1';
+  return `${nxt}/${jenis}/${kode}/${bln}${thn}`;
+}
+
+// Format
+function fR(v) { return 'Rp ' + Math.round(Math.abs(v||0)).toLocaleString('id-ID'); }
+function fK(v) { const a=Math.abs(v||0); if(a>=1000000) return (v/1000000).toFixed(1)+' Jt'; if(a>=1000) return Math.round(v/1000)+'K'; return (v||0).toString(); }
+
+// ======= KPI =======
+function updateKPI() {
+  const sorted = hitungSaldo(D);
+  const totalMasuk = D.filter(d=>d.j==='PCI').reduce((s,d)=>s+d.nominal,0);
+  const totalKeluar = D.filter(d=>d.j==='PCO').reduce((s,d)=>s+d.nominal,0);
+  const last = sorted[sorted.length-1];
+  const saldoAkhir = last ? last.saldo_calc : 0;
+  const tglAkhir = last ? last.t : '-';
+
+  document.getElementById('ov-saldo').textContent = fR(saldoAkhir);
+  document.getElementById('ov-saldo-sub').textContent = 'Per ' + tglAkhir;
+  document.getElementById('ov-masuk').textContent = fK(totalMasuk);
+  document.getElementById('ov-keluar').textContent = fK(totalKeluar);
+  document.getElementById('ov-trx').textContent = D.length;
+
+  document.getElementById('pc-saldo').textContent = fR(saldoAkhir);
+  document.getElementById('pc-saldo-tgl').textContent = 'Per ' + tglAkhir;
+  document.getElementById('pc-masuk').textContent = Math.round(totalMasuk).toLocaleString('id-ID');
+  document.getElementById('pc-masuk-n').textContent = D.filter(d=>d.j==='PCI').length + ' transaksi masuk';
+  document.getElementById('pc-keluar').textContent = Math.round(totalKeluar).toLocaleString('id-ID');
+  document.getElementById('pc-keluar-n').textContent = D.filter(d=>d.j==='PCO').length + ' transaksi keluar';
+  document.getElementById('pc-net').textContent = Math.round(saldoAkhir).toLocaleString('id-ID');
+}
+
+// ======= TABEL =======
+let cp=1, pp=15, fd=[];
+
+function fTrx() {
+  const s = document.getElementById('srch').value.toLowerCase();
+  const j = document.getElementById('fJ').value;
+  const b = document.getElementById('fB').value;
+  const src = document.getElementById('fS').value;
+  const sorted = hitungSaldo(D);
+  fd = sorted.filter(d =>
+    (!s || d.k.toLowerCase().includes(s) || (d.ref||'').toLowerCase().includes(s)) &&
+    (!j || d.j === j) &&
+    (!b || d.b === b) &&
+    (!src || d.sumber === src)
+  );
+  cp = 1; rT();
+}
+
+function rT() {
+  const st = (cp-1)*pp;
+  document.getElementById('tBody').innerHTML = fd.slice(st,st+pp).map(d => `
+    <tr>
+      <td style="color:#6e6e73;font-size:11px">${d.no_urut}</td>
+      <td style="white-space:nowrap">${d.t||'-'}</td>
+      <td><span class="ref-tag">${d.ref||'-'}</span></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.k}">${d.k}</td>
+      <td><span class="${d.j==='PCI'?'bpci':'bpco'}">${d.j}</span></td>
+      <td style="text-align:right" class="${d.j==='PCI'?'ain':''}">${d.j==='PCI'?fR(d.nominal):'-'}</td>
+      <td style="text-align:right" class="${d.j==='PCO'?'aout':''}">${d.j==='PCO'?fR(d.nominal):'-'}</td>
+      <td style="text-align:right;white-space:nowrap">${fR(d.saldo_calc)}</td>
+      <td style="font-size:11px;white-space:nowrap">${d.sumber||'-'}</td>
+      <td style="font-size:11px">${d.bank||'-'}</td>
+      <td>
+        <div class="act-btns">
+          <button class="btn btn-edit" onclick="editTrx(${d.id})">&#9998;</button>
+          <button class="btn btn-red" onclick="delTrx(${d.id},'${d.k.replace(/'/g,"\'")}')">&#128465;</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  const tot = fd.length;
+  document.getElementById('tInfo').textContent = `${Math.min(st+1,tot||1)}–${Math.min(st+pp,tot)} dari ${tot} transaksi`;
+}
+
+function pPg() { if(cp>1){cp--;rT();} }
+function nPg() { if(cp<Math.ceil(fd.length/pp)){cp++;rT();} }
+
+// ======= MODAL =======
+let editId = null;
+function updLbl() {
+  const j = document.getElementById('f-jenis').value;
+  document.getElementById('f-nom-lbl').textContent = j==='PCI' ? 'Jumlah Kredit / Masuk (Rp) *' : 'Jumlah Debit / Keluar (Rp) *';
+}
+function openModal(id=null) {
+  editId = id;
+  const today = new Date().toISOString().slice(0,10);
+  if (id===null) {
+    document.getElementById('modalTitle').textContent = '&#43; Tambah Transaksi';
+    document.getElementById('modalSaveBtn').textContent = '✓ Simpan';
+    document.getElementById('f-tgl').value = today;
+    document.getElementById('f-jenis').value = 'PCO';
+    document.getElementById('f-ref').value = autoRef('PCO', today);
+    document.getElementById('f-ket').value = '';
+    document.getElementById('f-nominal').value = '';
+    document.getElementById('f-sumber').value = '';
+    document.getElementById('f-bank').value = '';
+  } else {
+    const d = D.find(x=>x.id===id);
+    document.getElementById('modalTitle').textContent = '&#9998; Edit Transaksi';
+    document.getElementById('modalSaveBtn').textContent = '✓ Update';
+    document.getElementById('f-tgl').value = d.t;
+    document.getElementById('f-jenis').value = d.j;
+    document.getElementById('f-ref').value = d.ref||'';
+    document.getElementById('f-ket').value = d.k;
+    document.getElementById('f-nominal').value = d.nominal;
+    document.getElementById('f-sumber').value = d.sumber||'';
+    document.getElementById('f-bank').value = d.bank||'';
+  }
+  updLbl();
+  document.getElementById('modalOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('f-ket').focus(),100);
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+function closeModalOut(e) { if(e.target.id==='modalOverlay') closeModal(); }
+
+// Auto-update ref saat tanggal/jenis berubah
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('f-tgl').addEventListener('change', () => {
+    if (editId===null) document.getElementById('f-ref').value = autoRef(document.getElementById('f-jenis').value, document.getElementById('f-tgl').value);
+  });
+  document.getElementById('f-jenis').addEventListener('change', () => {
+    if (editId===null) document.getElementById('f-ref').value = autoRef(document.getElementById('f-jenis').value, document.getElementById('f-tgl').value);
+  });
+});
+
+function saveTrx() {
+  const tgl = document.getElementById('f-tgl').value;
+  const jenis = document.getElementById('f-jenis').value;
+  const ref = document.getElementById('f-ref').value.trim();
+  const ket = document.getElementById('f-ket').value.trim();
+  const nominal = parseFloat(document.getElementById('f-nominal').value);
+  const sumber = document.getElementById('f-sumber').value;
+  const bank = document.getElementById('f-bank').value;
+
+  if (!tgl) { showToast('⚠️ Tanggal harus diisi!'); return; }
+  if (!ket) { showToast('⚠️ Keterangan harus diisi!'); return; }
+  if (!nominal || nominal<=0) { showToast('⚠️ Nominal harus lebih dari 0!'); return; }
+
+  if (editId===null) {
+    D.push({id:nextId++,no:0,t:tgl,j:jenis,ref,k:ket,kredit:jenis==='PCI'?nominal:0,debit:jenis==='PCO'?nominal:0,sumber,bank,nominal,b:tgl.slice(5,7)});
+    showToast('✅ Transaksi berhasil ditambahkan!');
+  } else {
+    const idx = D.findIndex(x=>x.id===editId);
+    D[idx] = {...D[idx],t:tgl,j:jenis,ref,k:ket,kredit:jenis==='PCI'?nominal:0,debit:jenis==='PCO'?nominal:0,sumber,bank,nominal,b:tgl.slice(5,7)};
+    showToast('✅ Transaksi berhasil diupdate!');
+  }
+  saveData(); closeModal(); fTrx(); updateKPI(); updateCharts();
+}
+
+function editTrx(id) { openModal(id); }
+
+// ======= HAPUS =======
+let deleteId=null;
+function delTrx(id,nama) {
+  deleteId=id;
+  document.getElementById('delDesc').textContent=`"${nama}" akan dihapus permanen.`;
+  document.getElementById('delConfirm').classList.add('show');
+}
+function closeDel() { document.getElementById('delConfirm').classList.remove('show'); deleteId=null; }
+function confirmDel() {
+  D=D.filter(d=>d.id!==deleteId);
+  saveData(); closeDel(); fTrx(); updateKPI(); updateCharts();
+  showToast('🗑️ Transaksi berhasil dihapus!');
+}
+
+// ======= EXPORT EXCEL (persis format asli) =======
+function exportExcel() {
+  const sorted = hitungSaldo(D);
+  const totalMasuk = D.filter(d=>d.j==='PCI').reduce((s,d)=>s+d.nominal,0);
+  const totalKeluar = D.filter(d=>d.j==='PCO').reduce((s,d)=>s+d.nominal,0);
+  const saldoAkhir = sorted.length>0 ? sorted[sorted.length-1].saldo_calc : 0;
+
+  const wb = XLSX.utils.book_new();
+
+  // ===== SHEET 1: Format persis asli =====
+  const rows = [];
+  rows.push(['LAPORAN REALISASI ANGGARAN TAHUN 2026','','','','','','','','','','','']);
+  rows.push(['','','','','','','','','','','','']);
+  rows.push(['','','',totalMasuk,'SISA','','','','','','','']);
+  rows.push(['','','',totalKeluar,saldoAkhir,'','','','','','','']);
+  rows.push(['','','','','','','','','','','','']);
+  rows.push(['No','Tanggal','Jenis Transaksi','Referensi','Keterangan','Kredit','Debit','Saldo','Sumber Dana','BANK','Keterangan','Catatan Kode']);
+
+  sorted.forEach(d => {
+    rows.push([
+      d.no_urut,
+      d.t || '',
+      d.j,
+      d.ref || '',
+      d.k,
+      d.j==='PCI' ? d.nominal : '',
+      d.j==='PCO' ? d.nominal : '',
+      d.saldo_calc,
+      d.sumber || '',
+      d.bank || '',
+      '',
+      ''
+    ]);
+  });
+
+  // Baris total seperti asli
+  rows.push(['','','','','TOTAL',totalMasuk,totalKeluar,saldoAkhir,'','','','']);
+  rows.push(['']);
+  rows.push(['','','Diekspor dari Dashboard Rawang: ' + new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})]);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Lebar kolom persis seperti file asli
+  ws['!cols'] = [
+    {wch:5},   // No
+    {wch:14},  // Tanggal
+    {wch:8},   // Jenis Transaksi
+    {wch:25},  // Referensi
+    {wch:45},  // Keterangan
+    {wch:18},  // Kredit
+    {wch:18},  // Debit
+    {wch:18},  // Saldo
+    {wch:30},  // Sumber Dana
+    {wch:10},  // BANK
+    {wch:15},  // Keterangan
+    {wch:15},  // Catatan Kode
+  ];
+
+  // Merge title
+  ws['!merges'] = [
+    {s:{r:0,c:0},e:{r:0,c:11}},
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'PETTY CASH ALL OF THE YEAR');
+
+  // ===== SHEET 2: Rekap Bulanan =====
+  const rows2 = [];
+  rows2.push(['REKAP PETTY CASH PER BULAN - PERKUMPULAN RAWANG 2026','','','','']);
+  rows2.push(['']);
+  rows2.push(['Bulan','Total Kredit (Masuk)','Total Debit (Keluar)','Selisih','Jumlah Transaksi']);
+  const nm = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  nm.forEach((n,i) => {
+    const b = String(i+1).padStart(2,'0');
+    const m = D.filter(d=>d.b===b&&d.j==='PCI').reduce((s,d)=>s+d.nominal,0);
+    const k = D.filter(d=>d.b===b&&d.j==='PCO').reduce((s,d)=>s+d.nominal,0);
+    const t = D.filter(d=>d.b===b).length;
+    if (m>0||k>0) rows2.push([n,m,k,m-k,t]);
+  });
+  rows2.push(['']);
+  rows2.push(['TOTAL',totalMasuk,totalKeluar,totalMasuk-totalKeluar,D.length]);
+  const ws2 = XLSX.utils.aoa_to_sheet(rows2);
+  ws2['!cols'] = [{wch:14},{wch:22},{wch:22},{wch:16},{wch:18}];
+  ws2['!merges'] = [{s:{r:0,c:0},e:{r:0,c:4}}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Rekap Bulanan');
+
+  const tgl = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, 'Petty_Cash_Only_' + tgl + '.xlsx');
+  showToast('✅ Excel berhasil didownload!');
+}
+
+// ======= TOAST =======
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ======= CHARTS =======
+const mn=['Jan','Feb','Mar','Apr','Mei','Jun'];
+let charts={};
+
+function getMasuk() { return mn.map((_,i)=>{ const b=String(i+1).padStart(2,'0'); return D.filter(d=>d.b===b&&d.j==='PCI').reduce((s,d)=>s+d.nominal,0); }); }
+function getKeluar() { return mn.map((_,i)=>{ const b=String(i+1).padStart(2,'0'); return D.filter(d=>d.b===b&&d.j==='PCO').reduce((s,d)=>s+d.nominal,0); }); }
+
+function initCharts() {
+  charts.c1=new Chart(document.getElementById('c1'),{type:'bar',data:{labels:mn,datasets:[{label:'Masuk',data:getMasuk(),backgroundColor:'#4CAF50',borderRadius:5},{label:'Keluar',data:getKeluar(),backgroundColor:'#E53935',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fK(v),font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}},x:{ticks:{font:{size:11}}}}}});
+  charts.c2=new Chart(document.getElementById('c2'),{type:'doughnut',data:{labels:['Greenpeace (Titip)','KJH Assessment','KJH FPIC+FGD','Lainnya'],datasets:[{data:[31500000,10000000,19214131,2418414],backgroundColor:['#7B1FA2','#42A5F5','#26A69A','#FFA726'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}}}});
+  const s=hitungSaldo(D);
+  charts.c3=new Chart(document.getElementById('c3'),{type:'line',data:{labels:s.map(d=>d.t.slice(5,10)),datasets:[{data:s.map(d=>d.saldo_calc),borderColor:'#6A1B9A',backgroundColor:'rgba(106,27,154,0.08)',fill:true,tension:0.3,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fK(v),font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}},x:{ticks:{maxTicksLimit:8,font:{size:9}}}}}});
+  const t10=D.filter(d=>d.j==='PCO').sort((a,b)=>b.nominal-a.nominal).slice(0,10);
+  charts.c4=new Chart(document.getElementById('c4'),{type:'bar',data:{labels:t10.map(d=>d.k.length>26?d.k.slice(0,26)+'...':d.k),datasets:[{data:t10.map(d=>d.nominal),backgroundColor:'#7B1FA2',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fK(v),font:{size:9}}},y:{ticks:{font:{size:9}}}}}});
+  updKatChart();
+  charts.c6=new Chart(document.getElementById('c6'),{type:'bar',data:{labels:['Total Saving','Beban Gaji (3 Bln)','Beban Petty Cash (3x)','Sisa Saving Bersih'],datasets:[{data:[63132545,36000000,7500000,19632545],backgroundColor:['#7B1FA2','#EF5350','#EF5350','#26A69A'],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fK(v),font:{size:10}}},x:{ticks:{font:{size:11}}}}}});
+  charts.c7=new Chart(document.getElementById('c7'),{type:'doughnut',data:{datasets:[{data:[62,38],backgroundColor:['#6A1B9A','rgba(200,200,200,0.2)'],borderWidth:0}]},options:{responsive:false,cutout:'75%',plugins:{legend:{display:false},tooltip:{enabled:false}},rotation:-90,circumference:180}});
+  charts.c8=new Chart(document.getElementById('c8'),{type:'line',data:{labels:mn,datasets:[{data:getKeluar(),borderColor:'#E53935',backgroundColor:'rgba(229,57,53,0.08)',fill:true,tension:0.4,pointBackgroundColor:'#E53935',pointRadius:5,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fK(v),font:{size:10}}},x:{ticks:{font:{size:11}}}}}});
+  updHealth();
+}
+
+function updKatChart() {
+  const cats={'Transport':['transport','sewa mobil','sewa speedboat'],'Utilitas':['wifi','air pdam','listrik','utilitas','sampah','keamanan'],'Sembako':['sembako','galon','gula','telur','roti','konsumsi'],'ATK/Perlengkapan':['atk','kertas','spidol','materai','gembok','kunci','tissue'],'Operasional':[]};
+  function gK(k){ const l=k.toLowerCase(); for(const[n,kws] of Object.entries(cats)){ if(kws.some(w=>l.includes(w)))return n; } return 'Operasional'; }
+  const kT={};
+  D.filter(d=>d.j==='PCO').forEach(d=>{ const n=gK(d.k); kT[n]=(kT[n]||0)+d.nominal; });
+  const kC=['#7B1FA2','#42A5F5','#26A69A','#FFA726','#78909C'];
+  const kK=Object.keys(kT).sort((a,b)=>kT[b]-kT[a]);
+  const tot=D.filter(d=>d.j==='PCO').reduce((s,d)=>s+d.nominal,0);
+  if(charts.c5) charts.c5.destroy();
+  charts.c5=new Chart(document.getElementById('c5'),{type:'doughnut',data:{labels:kK,datasets:[{data:kK.map(k=>kT[k]),backgroundColor:kC,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  document.getElementById('kLeg').innerHTML=kK.map((k,i)=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:${kC[i]}"></span>${k} ${Math.round(kT[k]/tot*100)}%</span>`).join('');
+  const mxK=kT[kK[0]]||1;
+  document.getElementById('kProg').innerHTML=kK.map((k,i)=>`<div class="pr"><div class="pl" title="${k}">${k}</div><div class="pw"><div class="pb" style="width:${Math.round(kT[k]/mxK*100)}%;background:${kC[i]}"></div></div><div class="pv">${fK(kT[k])}</div></div>`).join('');
+}
+
+function updHealth() {
+  const totalMasuk=D.filter(d=>d.j==='PCI').reduce((s,d)=>s+d.nominal,0);
+  const totalKeluar=D.filter(d=>d.j==='PCO').reduce((s,d)=>s+d.nominal,0);
+  const s=hitungSaldo(D);
+  const saldoAkhir=s.length>0?s[s.length-1].saldo_calc:0;
+  const rasio=totalMasuk>0?Math.round(totalKeluar/totalMasuk*100):0;
+  const lik=totalMasuk>0?(saldoAkhir/totalMasuk*100).toFixed(1):0;
+  document.getElementById('health-ind').innerHTML=`
+    <div class="ir"><span style="color:#6e6e73">Likuiditas Petty Cash</span><span class="${saldoAkhir/totalMasuk>0.05?'ig':'iw'}">${lik}%</span></div>
+    <div class="ir"><span style="color:#6e6e73">Saving Tersimpan</span><span class="ig">Ada (Rp 63 Jt)</span></div>
+    <div class="ir"><span style="color:#6e6e73">Rasio Pengeluaran</span><span class="${rasio>95?'iw':'ig'}">${rasio}% dari masuk</span></div>
+    <div class="ir"><span style="color:#6e6e73">Stabilitas Kas</span><span class="ig">Terjaga (top-up rutin)</span></div>`;
+}
+
+function updateCharts() {
+  const mI=getMasuk(), mO=getKeluar();
+  charts.c1.data.datasets[0].data=mI; charts.c1.data.datasets[1].data=mO; charts.c1.update();
+  const s=hitungSaldo(D);
+  charts.c3.data.labels=s.map(d=>d.t.slice(5,10)); charts.c3.data.datasets[0].data=s.map(d=>d.saldo_calc); charts.c3.update();
+  const t10=D.filter(d=>d.j==='PCO').sort((a,b)=>b.nominal-a.nominal).slice(0,10);
+  charts.c4.data.labels=t10.map(d=>d.k.length>26?d.k.slice(0,26)+'...':d.k);
+  charts.c4.data.datasets[0].data=t10.map(d=>d.nominal); charts.c4.update();
+  charts.c8.data.datasets[0].data=mO; charts.c8.update();
+  updKatChart(); updHealth();
+}
+
+// ======= NAV =======
+function showPg(id,b) {
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  b.classList.add('active');
+  if(id==='pc') fTrx();
+}
+
+// ======= INIT =======
+updateKPI();
+fTrx();
+window.addEventListener('load', initCharts);
+</script>
+</body>
+</html>
